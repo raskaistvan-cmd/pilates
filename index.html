@@ -10,25 +10,21 @@ function submitRegistration(timeSlot) {
   
   const email = emailInput?.value?.trim() || '';
   
-  const formData = new FormData();
-  formData.append('action', 'add');
-  formData.append('timeSlot', timeSlot);
-  formData.append('name', name);
-  formData.append('email', email);
+  const url = APPS_SCRIPT_URL + '?action=add&timeSlot=' + encodeURIComponent(timeSlot) + 
+              '&name=' + encodeURIComponent(name) + 
+              '&email=' + encodeURIComponent(email);
   
-  fetch(APPS_SCRIPT_URL, {
-    method: 'POST',
-    body: formData,
-    mode: 'no-cors'
-  })
-  .then(() => {
-    document.querySelector(`#timeslot-${timeSlot} input[placeholder*="Név"]`).value = '';
-    document.querySelector(`#timeslot-${timeSlot} input[placeholder*="Email"]`).value = '';
-    loadData();
-    showStatus('✅ Regisztráció sikeres!', 'success');
-  })
-  .catch(error => {
-    console.log('Fetch error (normal):', error);
-    loadData();
-  });
+  fetch(url)
+    .then(response => response.json())
+    .then(data => {
+      console.log('✅ Response:', data);
+      document.querySelector(`#timeslot-${timeSlot} input[placeholder*="Név"]`).value = '';
+      document.querySelector(`#timeslot-${timeSlot} input[placeholder*="Email"]`).value = '';
+      loadData();
+      showStatus('✅ Regisztráció sikeres!', 'success');
+    })
+    .catch(error => {
+      console.error('Hiba:', error);
+      loadData();
+    });
 }
