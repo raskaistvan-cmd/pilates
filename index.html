@@ -409,6 +409,18 @@
                 <div class="form-group">
                     <label for="participantEmail">E-mail cím *</label>
                     <input type="email" id="participantEmail" name="email" required placeholder="Add meg az e-mail címed">
+                    <small style="color: #7f8c8d; margin-top: 5px; display: block;">
+                        Az e-mail cím csak duplikációellenőrzésre használható. Nem jelenik meg nyilvánosan.
+                    </small>
+                </div>
+                <div class="form-group" style="margin-top: 15px;">
+                    <label style="display: flex; align-items: flex-start; gap: 8px; font-weight: normal; cursor: pointer;">
+                        <input type="checkbox" id="consentCheckbox" name="consent" required style="margin-top: 3px; cursor: pointer;">
+                        <span style="font-size: 13px; line-height: 1.4;">
+                            Elfogadom az <a href="#" onclick="showGDPRModal(event)" style="color: #667eea; text-decoration: underline;">adatkezelési nyilatkozatot</a>.
+                            Tudomásul veszem, hogy az e-mail cím az adatkezelési szabályzat szerint kezelt személyes adat.
+                        </span>
+                    </label>
                 </div>
                 <div class="success-message" id="successMessage">
                     ✓ Sikeres regisztráció! Az oldal azonnal frissül...
@@ -421,6 +433,37 @@
                     <button type="button" class="btn btn-secondary" onclick="closeRegistrationModal()">Mégse</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- GDPR Modal -->
+    <div class="modal" id="gdprModal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeGDPRModal()">×</button>
+            <h2>📋 Adatkezelési nyilatkozat</h2>
+            <div style="font-size: 13px; max-height: 400px; overflow-y: auto; margin-bottom: 20px;">
+                <p><strong>Adatkezelő:</strong> A szervezet HR/Eseményszervezési csapata</p>
+                <p><strong>Cél:</strong> Pilates óra regisztráció a Tenisz nap eseményre</p>
+                <p><strong>Kezelt adatok:</strong></p>
+                <ul>
+                    <li>Teljes név</li>
+                    <li>E-mail cím</li>
+                    <li>Regisztráció időpontja</li>
+                </ul>
+                <p><strong>Jogalap:</strong> Szerződés teljesítése (eseményi regisztráció)</p>
+                <p><strong>Adattárolás:</strong></p>
+                <ul>
+                    <li>E-mail: csak duplikációellenőrzésre, nem jelenik meg nyilvánosan</li>
+                    <li>Név: nyilvánosan látható az eseményen való szervezés céljából</li>
+                    <li>Regisztráció dátuma: szervezési adminisztráció</li>
+                </ul>
+                <p><strong>Adatok megosztása:</strong> Az adatok csak az esemény szervezésében részt vevő adminisztrátorokat látják</p>
+                <p><strong>Adatmegtartás:</strong> Az adatok az esemény után 30 napig maradnak, majd véglegesen törlődnek</p>
+                <p><strong>Jogok:</strong> Hozzáférhetsz, módosíthatod vagy törölheted adataidat az admin csapathoz fordulva</p>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn btn-primary" onclick="closeGDPRModal()">Megértettem</button>
+            </div>
         </div>
     </div>
 
@@ -525,7 +568,6 @@
                         <div class="participant-item">
                             <div style="flex: 1;">
                                 <div class="participant-name">${p.name}</div>
-                                ${p.email ? `<div style="font-size: 10px; color: white; opacity: 0.85; margin-top: 2px;">${p.email}</div>` : ''}
                             </div>
                             <button type="button" class="delete-btn" onclick="deleteParticipant('${slotKey}', ${idx}, event)">×</button>
                         </div>
@@ -572,6 +614,15 @@
             document.getElementById('adminPassword').value = '';
         }
 
+        function showGDPRModal(event) {
+            event.preventDefault();
+            document.getElementById('gdprModal').classList.add('active');
+        }
+
+        function closeGDPRModal() {
+            document.getElementById('gdprModal').classList.remove('active');
+        }
+
         function exitAdminMode() {
             adminLoggedIn = false;  // Kijelentkezés
             document.getElementById('adminPanel').style.display = 'none';
@@ -585,6 +636,12 @@
             const name = document.getElementById('participantName').value.trim();
             if (!name) {
                 alert('Kérlek add meg a neved!');
+                return;
+            }
+
+            const consent = document.getElementById('consentCheckbox').checked;
+            if (!consent) {
+                alert('Meg kell erősítened az adatkezelési nyilatkozatot!');
                 return;
             }
 
