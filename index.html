@@ -575,10 +575,11 @@
                     successMsg.classList.add('show');
                     offlineMsg.classList.remove('show');
 
-                    // Auto-reload after 1.5 seconds to close modal
+                    // Explicit close modal és renderelés
                     setTimeout(() => {
-                        window.location.reload();
-                    }, 1500);
+                        closeRegistrationModal();
+                        renderTimeslots();
+                    }, 1000);
                 } else {
                     throw new Error('Server error');
                 }
@@ -594,10 +595,11 @@
                 offlineMsg.classList.add('show');
                 successMsg.classList.remove('show');
 
-                // Auto-reload after 1.5 seconds even in offline mode
+                // Explicit close modal és renderelés offline módban is
                 setTimeout(() => {
-                    window.location.reload();
-                }, 1500);
+                    closeRegistrationModal();
+                    renderTimeslots();
+                }, 1000);
             }
         }
 
