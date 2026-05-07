@@ -616,7 +616,7 @@
                 const data = await response.json();
                 console.log('Server response:', data);
 
-                if (data.success) {
+                if (data.success || data["0"] !== undefined) {
                     console.log('Registration successful! Reloading fresh data...');
                     successMsg.classList.add('show');
                     offlineMsg.classList.remove('show');
