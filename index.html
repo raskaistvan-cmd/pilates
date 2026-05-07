@@ -247,15 +247,12 @@
             <h1>🎾 Tenisz nap - Pilates óra</h1>
             <p>Válaszd ki az időpontot és regisztrálj</p>
         </div>
-
         <div style="text-align: right; margin-bottom: 20px;">
             <button class="admin-button" onclick="openAdminModal()">⚙️ Admin</button>
             <button class="export-button" onclick="exportToCSV()">📥 Exportálás CSV-be</button>
         </div>
-
         <div class="timeslots-grid" id="timeslotsGrid"></div>
     </div>
-
     <!-- Registration Modal -->
     <div class="modal" id="registrationModal">
         <div class="modal-content">
@@ -278,7 +275,6 @@
             </form>
         </div>
     </div>
-
     <!-- Admin Modal -->
     <div class="modal" id="adminModal">
         <div class="modal-content">
@@ -300,26 +296,22 @@
             </div>
         </div>
     </div>
-
     <script>
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw-DocYNQ8zx0mRaV2YjhUcHCJENoBbOqd0hZYI3BgVYKiS2nSadK5_6VPJaiv547ux/exec';
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzfYL7Anagx6BJkUAhbE4axqvx1jNCUEw3nmX_qBgpG3EMtMGMsRJ7Di314jW2gRttx/exec';
         let registrations = { "0": [], "1": [], "2": [] };
         let currentSlotId = null;
         let adminLoggedIn = false;
-
         // Initialize
         document.addEventListener('DOMContentLoaded', async () => {
             await loadRegistrations();
             renderTimeslots();
             setInterval(loadRegistrations, 5000);
         });
-
         async function loadRegistrations() {
             try {
                 const response = await fetch(APPS_SCRIPT_URL);
                 const data = await response.json();
                 console.log('loadRegistrations:', data);
-
                 if (data["0"] !== undefined) {
                     registrations = data;
                     renderTimeslots();
@@ -328,21 +320,17 @@
                 console.error('Error:', error);
             }
         }
-
         function renderTimeslots() {
             const grid = document.getElementById('timeslotsGrid');
             grid.innerHTML = '';
-
             const slots = [
                 { id: '0', time: '9:00 - 9:50' },
                 { id: '1', time: '10:00 - 10:50' },
                 { id: '2', time: '11:00 - 11:50' }
             ];
-
             slots.forEach(slot => {
                 const participants = registrations[slot.id] || [];
                 const isFull = participants.length >= 6;
-
                 let participantHTML = '';
                 participants.forEach((p, idx) => {
                     participantHTML += `
@@ -352,7 +340,6 @@
                         </div>
                     `;
                 });
-
                 const card = document.createElement('div');
                 card.className = `timeslot-card ${isFull ? 'full' : ''}`;
                 card.onclick = () => !isFull && openRegistrationModal(slot.id);
@@ -366,51 +353,39 @@
                 grid.appendChild(card);
             });
         }
-
         function openRegistrationModal(slotId) {
             currentSlotId = slotId;
             document.getElementById('registrationModal').classList.add('active');
             document.getElementById('participantName').focus();
         }
-
         function closeRegistrationModal() {
             document.getElementById('registrationModal').classList.remove('active');
             document.getElementById('registrationForm').reset();
             document.getElementById('errorMessage').classList.remove('show');
             currentSlotId = null;
         }
-
         async function submitRegistration(event) {
             event.preventDefault();
-
             const name = document.getElementById('participantName').value.trim();
             const email = document.getElementById('participantEmail').value.trim();
-
             if (!name) {
                 showError('Add meg a neved!');
                 return;
             }
-
             if (!email) {
                 showError('Add meg az email-t!');
                 return;
             }
-
             const submitBtn = document.getElementById('submitBtn');
             submitBtn.disabled = true;
             submitBtn.textContent = '⏳ Küldés...';
-
             try {
                 console.log('submitRegistration:', { slotId: currentSlotId, name, email });
-
                 const url = `${APPS_SCRIPT_URL}?action=add&slotId=${currentSlotId}&name=${encodeURIComponent(name)}&email=${encodeURIComponent(email)}`;
                 console.log('Fetching:', url);
-
                 const response = await fetch(url);
                 const data = await response.json();
-
                 console.log('Response:', data);
-
                 if (data.success === false) {
                     showError(data.error || 'Hiba a regisztráció során!');
                 } else {
@@ -426,22 +401,18 @@
                 submitBtn.textContent = 'Regisztráció';
             }
         }
-
         function showError(message) {
             const errorEl = document.getElementById('errorMessage');
             errorEl.textContent = '❌ ' + message;
             errorEl.classList.add('show');
             setTimeout(() => errorEl.classList.remove('show'), 4000);
         }
-
         function deleteParticipant(slotId, index, event) {
             event.stopPropagation();
-
             if (!adminLoggedIn) {
                 alert('🔒 Admin jelszó szükséges!');
                 return;
             }
-
             if (confirm('Biztosan törlöd?')) {
                 const url = `${APPS_SCRIPT_URL}?action=remove&slotId=${slotId}&index=${index}`;
                 fetch(url)
@@ -452,21 +423,17 @@
                     });
             }
         }
-
         function openAdminModal() {
             document.getElementById('adminModal').classList.add('active');
             document.getElementById('adminPassword').focus();
         }
-
         function closeAdminModal() {
             document.getElementById('adminModal').classList.remove('active');
             document.getElementById('adminPassword').value = '';
         }
-
         function submitAdminLogin(event) {
             event.preventDefault();
             const password = document.getElementById('adminPassword').value;
-
             if (password === 'admin123') {
                 adminLoggedIn = true;
                 document.getElementById('adminActions').classList.add('show');
@@ -475,13 +442,11 @@
                 alert('Hibás jelszó!');
             }
         }
-
         function exitAdminMode() {
             adminLoggedIn = false;
             document.getElementById('adminActions').classList.remove('show');
             closeAdminModal();
         }
-
         async function resetAllRegistrations() {
             if (confirm('BIZTOSAN törlöd az ÖSSZES regisztrációt?')) {
                 const url = `${APPS_SCRIPT_URL}?action=reset`;
@@ -493,17 +458,14 @@
                 alert('Összes törlésre került!');
             }
         }
-
         function exportToCSV() {
             let csv = 'Időpont,Név,E-mail\n';
             const slotTimes = { '0': '9:00-9:50', '1': '10:00-10:50', '2': '11:00-11:50' };
-
             Object.keys(registrations).forEach(slotId => {
                 registrations[slotId].forEach(p => {
                     csv += `"${slotTimes[slotId]}","${p.name}","${p.email}"\n`;
                 });
             });
-
             const blob = new Blob([csv], { type: 'text/csv' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
