@@ -448,7 +448,7 @@
     </div>
 
     <script>
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyDzLwyk7qqsX_7nlKgW4BStG4Q6UoRdOG1ooKNBz9Iie2PRyZ-9rNBnG5QJJuR_bjV/exec';
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwVqzBzEgbVTWmIhUEQ4kTN1Hv2dgpq8Pt1YQuQJM-Uh0jclfSUMmXpyfD8OFMDo2xT/exec';
 
         let registrations = {};
         let currentSlotId = null;
@@ -521,9 +521,9 @@
                 participants.forEach((p, idx) => {
                     participantHTML += `
                         <div class="participant-item">
-                            <div class="participant-name">
-                                <strong>${p.name}</strong>
-                                ${p.email ? `<div style="font-size: 11px; opacity: 0.7; margin-top: 2px;">${p.email}</div>` : ''}
+                            <div style="flex: 1;">
+                                <div class="participant-name">${p.name}</div>
+                                ${p.email ? `<div style="font-size: 10px; color: #666; margin-top: 2px;">${p.email}</div>` : ''}
                             </div>
                             <button type="button" class="delete-btn" onclick="deleteParticipant('${slotKey}', ${idx}, event)">×</button>
                         </div>
@@ -621,24 +621,12 @@
                 }
             } catch (error) {
                 console.error('Error occurred:', error.message);
-                console.log('Switching to offline mode...');
 
-                // Fallback to localStorage
-                if (!registrations[String(currentSlotId)]) {
-                    registrations[String(currentSlotId)] = [];
-                }
-                registrations[String(currentSlotId)].push({ name, email });
-                localStorage.setItem('pilatesRegistrations', JSON.stringify(registrations));
+                // Hibaüzenet alert-ben
+                alert('⚠️ ' + error.message);
 
-                offlineMsg.classList.add('show');
-                successMsg.classList.remove('show');
-                offlineMsg.textContent = '⚠️ Offline mód (hálózati hiba): ' + error.message;
-
-                setTimeout(() => {
-                    console.log('Closing modal and rendering in offline mode...');
-                    closeRegistrationModal();
-                    renderTimeslots();
-                }, 500);
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Regisztráció';
             } finally {
                 // Biztonsági reset gomb
                 setTimeout(() => {
