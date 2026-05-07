@@ -454,8 +454,8 @@
         let currentSlotId = null;
 
         // Initialize
-        document.addEventListener('DOMContentLoaded', function() {
-            loadRegistrations();
+        document.addEventListener('DOMContentLoaded', async function() {
+            await loadRegistrations();
             renderTimeslots();
         });
 
@@ -465,25 +465,21 @@
                 const response = await fetch(`${APPS_SCRIPT_URL}?action=getAll`);
                 const data = await response.json();
                 console.log('loadRegistrations: Response from getAll:', data);
-                alert('📥 getAll válasz:\n' + JSON.stringify(data));
 
                 // Ha az adatok közvetlenül az registrations objektum (van "0", "1", "2" kulcs)
                 if (data["0"] !== undefined || data["1"] !== undefined || data["2"] !== undefined) {
                     registrations = data;
-                    console.log('loadRegistrations: Direct registrations object:', registrations);
-                    alert('✅ Frissített registrations (direct):\n' + JSON.stringify(registrations));
+                    console.log('✅ Registrations loaded (direct)');
                 }
                 // Ha az adatok a registrations field-ben vannak
                 else if (data.success && data.registrations) {
                     registrations = data.registrations;
-                    console.log('loadRegistrations: Registrations from field:', registrations);
-                    alert('✅ Frissített registrations (field):\n' + JSON.stringify(registrations));
+                    console.log('✅ Registrations loaded (field)');
                 }
                 // Fallback
                 else if (data.registrations) {
                     registrations = data.registrations;
-                    console.log('loadRegistrations: Registrations from field (no success):', registrations);
-                    alert('✅ Frissített registrations (fallback):\n' + JSON.stringify(registrations));
+                    console.log('✅ Registrations loaded (fallback)');
                 } else {
                     throw new Error('Invalid response format: ' + JSON.stringify(data));
                 }
@@ -491,7 +487,6 @@
                 localStorage.setItem('pilatesRegistrations', JSON.stringify(registrations));
             } catch (error) {
                 console.error('Error loading registrations:', error);
-                alert('❌ Hiba a loadRegistrations-ben: ' + error.message);
                 const saved = localStorage.getItem('pilatesRegistrations');
                 registrations = saved ? JSON.parse(saved) : { "0": [], "1": [], "2": [] };
             }
