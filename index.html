@@ -572,7 +572,6 @@
 
                     console.log('✅ Regisztráció küldve a Google Sheet-be');
                     showMessage(`✅ Sikeresen regisztráltál a ${timeslots[currentSlotId]} órára!`, 'success');
-                    closeModal();
                     renderTimeslots();
                 } else {
                     throw new Error(data.message || 'Ismeretlen hiba');
@@ -589,14 +588,10 @@
 
                 document.getElementById('offlineBanner').classList.add('show');
                 showMessage('⚠️ Offline módban regisztráltál. Az adatok lokálisan tárolódnak.', 'info');
-                closeModal();
                 renderTimeslots();
             } finally {
-                // Re-enable the button if modal is still open
-                if (document.getElementById('registrationModal').classList.contains('active')) {
-                    submitBtn.disabled = false;
-                    submitBtn.textContent = 'Regisztrálás';
-                }
+                // MINDIG zárja be a modalt
+                closeModal();
             }
         }
 
