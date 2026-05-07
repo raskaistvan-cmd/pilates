@@ -171,7 +171,6 @@
         .remove-btn.hidden {
             display: none;
         }
-        /* Modal */
         .modal {
             display: none;
             position: fixed;
@@ -262,7 +261,6 @@
         .modal-buttons .cancel-btn:hover {
             background: #ddd;
         }
-        /* Export section */
         .export-section {
             background: white;
             border-radius: 12px;
@@ -388,7 +386,6 @@
             }
         }
     </style>
-    <!-- Google Apps Script API URL -->
     <script>
         const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzhFRcJajTDhB0AIK2eJJ5yX_Irpq0LZ9Xkez-ENznVhs3tDU_UCevHo4zipQNShmlU/exec';
     </script>
@@ -431,7 +428,6 @@
             </div>
         </div>
     </div>
-    <!-- Regisztrációs modal -->
     <div id="registerModal" class="modal">
         <div class="modal-content">
             <div class="modal-header" id="modalTitle"></div>
@@ -451,7 +447,6 @@
             </form>
         </div>
     </div>
-    <!-- Admin Login Modal -->
     <div id="adminModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">🔐 Admin Belépés</div>
@@ -471,7 +466,6 @@
         </div>
     </div>
     <script>
-        // Adatstruktúra
         const TIMESLOTS = [
             { id: 0, time: '9:00-9:50', maxSlots: 6 },
             { id: 1, time: '10:00-10:50', maxSlots: 6 },
@@ -481,7 +475,6 @@
         let currentSlotId = null;
         let isAdminMode = false;
         const ADMIN_PASSWORD = 'admin123';
-        // Status üzenet megjelenítése
         function showStatus(message, type = 'success') {
             const statusEl = document.getElementById('statusMessage');
             statusEl.textContent = message;
@@ -490,17 +483,260 @@
                 statusEl.className = 'status-message';
             }, 3000);
         }
-        // Inicializálás
         async function init() {
             await loadData();
             renderTimeslots();
             updateStats();
             updateAdminUI();
         }
-        // Admin panel megnyitása
         function toggleAdminPanel() {
             document.getElementById('adminModal').classList.add('active');
             document.getElementById('adminPassword').value = '';
             document.getElementById('adminError').style.display = 'none';
         }
-        // Admin
+        function closeAdminModal() {
+            document.getElementById('adminModal').classList.remove('active');
+            document.getElementById('adminPassword').value = '';
+            document.getElementById('adminError').style.display = 'none';
+        }
+        function submitAdminPassword(e) {
+            e.preventDefault();
+            const password = document.getElementById('adminPassword').value;
+            if (password === ADMIN_PASSWORD) {
+                isAdminMode = true;
+                closeAdminModal();
+                updateAdminUI();
+                showStatus('✅ Admin mód aktiválva!');
+            } else {
+                document.getElementById('adminError').style.display = 'block';
+                document.getElementById('adminPassword').value = '';
+                document.getElementById('adminPassword').focus();
+            }
+        }
+        function updateAdminUI() {
+            const adminControls = document.getElementById('adminControls');
+            const adminToggleBtn = document.getElementById('adminToggleBtn');
+            const adminStatus = document.getElementById('adminStatus');
+            const removeButtons = document.querySelectorAll('.remove-btn');
+            if (isAdminMode) {
+                adminControls.classList.add('active');
+                adminToggleBtn.textContent = '✅ Admin mód aktív';
+                adminStatus.style.display = 'inline-block';
+                removeButtons.forEach(btn => btn.classList.remove('hidden'));
+            } else {
+                adminControls.classList.remove('active');
+                adminToggleBtn.textContent = '🔐 Admin belépés';
+                adminStatus.style.display = 'none';
+                removeButtons.forEach(btn => btn.classList.add('hidden'));
+            }
+        }
+        function logoutAdmin() {
+            if (confirm('Biztosan kijelentkezel az admin módból?')) {
+                isAdminMode = false;
+                updateAdminUI();
+                showStatus('🔓 Kijelentkeztél');
+            }
+        }
+        async function loadData() {
+            try {
+                const response = await fetch(APPS_SCRIPT_URL + '?action=getAll');
+                const data = await response.json();
+                registrations = data;
+                console.log('✅ Adatok betöltve a Google Sheet-ből');
+            } catch (error) {
+                console.log('⚠️ Offline mód - localStorage használata:', error);
+                const stored = localStorage.getItem('pilatesRegistrations');
+                if (stored) {
+                    registrations = JSON.parse(stored);
+                } else {
+                    TIMESLOTS.forEach(slot => {
+                        registrations[slot.id] = [];
+                    });
+                }
+            }
+        }
+        function saveData() {
+            localStorage.setItem('pilatesRegistrations', JSON.stringify(registrations));
+            updateStats();
+        }
+        function renderTimeslots() {
+            const container = document.getElementById('timeslots');
+            container.innerHTML = '';
+            TIMESLOTS.forEach(slot => {
+                const registered = registrations[String(slot.id)] || [];
+                const available = slot.maxSlots - registered.length;
+                const isFull = available <= 0;
+                const slotDiv = document.createElement('div');
+                slotDiv.className = 'timeslot';
+                slotDiv.innerHTML = `
+                    <div class="timeslot-time">⏰ ${slot.time}</div>
+                    <div class="timeslot-info">
+                        <div class="slot-count">
+                            <label>Szabad helyek</label>
+                            <div class="slot-number ${isFull ? 'full' : ''}">${available}/${slot.maxSlots}</div>
+                        </div>
+                    </div>
+                    <button class="register-btn" onclick="openModal(${slot.id})" ${isFull ? 'disabled' : ''}>
+                        ${isFull ? '❌ MEGTELT' : '✅ REGISZTRÁLOK'}
+                    </button>
+                    <div class="participants">
+                        <div class="participants-title">👥 Regisztráltak (${registered.length})</div>
+                        <div class="participant-list" id="list-${slot.id}">
+                            ${registered.length === 0 ? '<div style="color: #999; font-size: 0.9em; padding: 10px 0; text-align: center;">Még senki sem regisztrált</div>' : ''}
+                            ${registered.map((p, idx) => `
+                                <div class="participant">
+                                    <div class="participant-info">
+                                        <div class="participant-name">${p.name}</div>
+                                        ${p.email ? `<div class="participant-email">${p.email}</div>` : ''}
+                                    </div>
+                                    <button type="button" class="remove-btn" onclick="removeParticipant(${slot.id}, ${idx})">✕</button>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+                container.appendChild(slotDiv);
+            });
+        }
+        function openModal(slotId) {
+            currentSlotId = slotId;
+            const slot = TIMESLOTS.find(s => s.id === slotId);
+            document.getElementById('modalTitle').textContent = `Regisztráció - ${slot.time}`;
+            document.getElementById('nameInput').value = '';
+            document.getElementById('emailInput').value = '';
+            document.getElementById('registerModal').classList.add('active');
+            document.getElementById('nameInput').focus();
+        }
+        function closeModal() {
+            document.getElementById('registerModal').classList.remove('active');
+            currentSlotId = null;
+        }
+        async function submitRegistration(e) {
+            e.preventDefault();
+            const name = document.getElementById('nameInput').value.trim();
+            const email = document.getElementById('emailInput').value.trim();
+            
+            if (name) {
+                const slot = TIMESLOTS.find(s => s.id === currentSlotId);
+                const url = APPS_SCRIPT_URL + '?action=add&timeSlot=' + encodeURIComponent(slot.time) + 
+                            '&name=' + encodeURIComponent(name) + 
+                            '&email=' + encodeURIComponent(email || '');
+                
+                try {
+                    const response = await fetch(url);
+                    const data = await response.json();
+                    console.log('✅ Regisztráció küldve a Google Sheet-be');
+                    showStatus('✅ Regisztrálva!');
+                } catch (error) {
+                    console.log('Error küldés:', error);
+                    showStatus('⚠️ Offline mód - csak lokálisan tárolódik', 'error');
+                }
+                
+                const slotKey = String(currentSlotId);
+                if (!registrations[slotKey]) {
+                    registrations[slotKey] = [];
+                }
+                registrations[slotKey].push({ name, email: email || '' });
+                saveData();
+                renderTimeslots();
+                closeModal();
+            }
+        }
+        async function removeParticipant(slotId, idx) {
+            if (!isAdminMode) {
+                alert('❌ Admin jelszó szükséges!');
+                return;
+            }
+            const slot = TIMESLOTS.find(s => s.id === slotId);
+            const name = registrations[String(slotId)][idx].name;
+            
+            const url = APPS_SCRIPT_URL + '?action=remove&timeSlot=' + encodeURIComponent(slot.time) + 
+                        '&name=' + encodeURIComponent(name);
+            
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                console.log('✅ Regisztráció törölve a Google Sheet-ből');
+            } catch (error) {
+                console.log('Error törlés:', error);
+            }
+            
+            registrations[String(slotId)].splice(idx, 1);
+            saveData();
+            renderTimeslots();
+        }
+        function updateStats() {
+            let totalReg = 0;
+            let totalSlots = 0;
+            TIMESLOTS.forEach(slot => {
+                const count = registrations[String(slot.id)] ? registrations[String(slot.id)].length : 0;
+                totalReg += count;
+                totalSlots += slot.maxSlots;
+            });
+            document.getElementById('total-registered').textContent = totalReg;
+            document.getElementById('total-slots').textContent = totalSlots;
+            document.getElementById('remaining-slots').textContent = totalSlots - totalReg;
+        }
+        function exportToCSV() {
+            let csv = 'Időpont,Név,Email\n';
+            TIMESLOTS.forEach(slot => {
+                const registered = registrations[String(slot.id)] || [];
+                if (registered.length === 0) {
+                    csv += `${slot.time},(üres)\n`;
+                } else {
+                    registered.forEach((p, idx) => {
+                        csv += `${idx === 0 ? slot.time : ''},${p.name},"${p.email || ''}"\n`;
+                    });
+                }
+            });
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', `tenisz-nap-pilates-${new Date().toISOString().split('T')[0]}.csv`);
+            link.click();
+            showStatus('📥 CSV letöltve!');
+        }
+        function copyToClipboard() {
+            let text = 'Időpont\tNév\tEmail\n';
+            TIMESLOTS.forEach(slot => {
+                const registered = registrations[String(slot.id)] || [];
+                if (registered.length === 0) {
+                    text += `${slot.time}\t(üres)\n`;
+                } else {
+                    registered.forEach((p, idx) => {
+                        text += `${idx === 0 ? slot.time : ''}\t${p.name}\t${p.email || ''}\n`;
+                    });
+                }
+            });
+            navigator.clipboard.writeText(text).then(() => {
+                showStatus('✅ Vágólapra másolva! Sheets-be beszúrható!');
+            });
+        }
+        async function resetAll() {
+            if (confirm('⚠️ Biztosan törlöd az ÖSSZES regisztrációt? Ez nem visszavonható!')) {
+                const url = APPS_SCRIPT_URL + '?action=reset';
+                
+                try {
+                    const response = await fetch(url);
+                    const data = await response.json();
+                    console.log('✅ Összes regisztráció törölve');
+                } catch (error) {
+                    console.log('Error reset:', error);
+                }
+                
+                TIMESLOTS.forEach(slot => {
+                    registrations[String(slot.id)] = [];
+                });
+                saveData();
+                renderTimeslots();
+                showStatus('🔄 Összes törlve!');
+            }
+        }
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeModal();
+        });
+        init();
+    </script>
+</body>
+</html>
