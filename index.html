@@ -3,740 +3,698 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tenisz nap - Pilates Regisztráció</title>
+    <title>Tenisz nap - Pilates óra regisztráció</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
+
         :root {
-            color-scheme: light;
+            --primary: #9333ea;
+            --primary-dark: #7e22ce;
+            --primary-light: #c084fc;
+            --text-dark: #1f2937;
+            --text-light: #6b7280;
+            --border: #e5e7eb;
+            --success: #10b981;
+            --error: #ef4444;
         }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
+            color: var(--text-dark);
         }
+
         .container {
-            max-width: 1000px;
+            max-width: 1200px;
             margin: 0 auto;
         }
+
         .header {
             text-align: center;
             color: white;
             margin-bottom: 40px;
         }
+
         .header h1 {
             font-size: 2.5em;
             margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
+
         .header p {
             font-size: 1.1em;
-            opacity: 0.9;
+            opacity: 0.95;
         }
-        .timeslots {
+
+        .slots-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
             gap: 20px;
             margin-bottom: 30px;
         }
-        .timeslot {
+
+        .slot-card {
             background: white;
             border-radius: 12px;
             padding: 25px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
-        .timeslot:hover {
+
+        .slot-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.2);
         }
-        .timeslot-time {
-            font-size: 1.8em;
+
+        .slot-time {
+            font-size: 1.5em;
             font-weight: bold;
-            color: #667eea;
+            color: var(--primary);
             margin-bottom: 15px;
         }
-        .timeslot-info {
+
+        .slot-capacity {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            font-size: 0.95em;
+        }
+
+        .capacity-bar {
+            flex: 1;
+            height: 8px;
+            background: var(--border);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .capacity-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--primary-light));
+            transition: width 0.3s ease;
+        }
+
+        .capacity-text {
+            font-weight: 600;
+            color: var(--text-dark);
+            min-width: 40px;
+            text-align: right;
+        }
+
+        .participants-list {
+            margin-bottom: 20px;
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px;
+            background: #f9fafb;
+        }
+
+        .participant {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid #f0f0f0;
-        }
-        .slot-count {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-        }
-        .slot-count label {
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border);
             font-size: 0.9em;
-            color: #666;
-            margin-bottom: 5px;
         }
-        .slot-number {
-            font-size: 1.8em;
-            font-weight: bold;
-            color: #667eea;
+
+        .participant:last-child {
+            border-bottom: none;
         }
-        .slot-number.full {
-            color: #e74c3c;
+
+        .participant-name {
+            font-weight: 500;
+            color: var(--text-dark);
         }
+
+        .participant-email {
+            color: var(--text-light);
+            font-size: 0.85em;
+        }
+
+        .delete-btn {
+            background: none;
+            border: none;
+            color: var(--error);
+            cursor: pointer;
+            font-size: 1.2em;
+            padding: 0 5px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .participant:hover .delete-btn {
+            opacity: 1;
+        }
+
         .register-btn {
             width: 100%;
             padding: 12px;
-            background: #667eea;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
             color: white;
             border: none;
             border-radius: 8px;
             font-size: 1em;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        .register-btn:hover:not(:disabled) {
-            background: #764ba2;
-        }
-        .register-btn:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-        }
-        .participants {
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 2px solid #f0f0f0;
-        }
-        .participants-title {
-            font-size: 1em;
-            color: #333;
-            margin-bottom: 15px;
-            font-weight: bold;
-        }
-        .participant-list {
-            max-height: 250px;
-            overflow-y: auto;
-        }
-        .participant {
-            font-size: 0.95em;
-            padding: 10px 10px;
-            margin-bottom: 8px;
-            color: #333;
-            border-bottom: none;
-            border-radius: 6px;
-            background: #f9f9f9;
-            border-left: 4px solid #667eea;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: background 0.2s;
-        }
-        .participant:hover {
-            background: #f0f0f5;
-        }
-        .participant:last-child {
-            border-bottom: none;
-        }
-        .participant-name {
             font-weight: 600;
-            color: #667eea;
-        }
-        .participant-info {
-            flex: 1;
-        }
-        .participant-email {
-            font-size: 0.85em;
-            color: #999;
-            margin-top: 3px;
-        }
-        .remove-btn {
-            background: #e74c3c;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            padding: 2px 8px;
-            font-size: 0.8em;
             cursor: pointer;
-            opacity: 0;
-            transition: opacity 0.2s;
+            transition: all 0.3s ease;
         }
-        .participant:hover .remove-btn {
-            opacity: 1;
+
+        .register-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 5px 15px rgba(147, 51, 234, 0.4);
         }
-        .remove-btn:hover {
-            background: #c0392b;
+
+        .register-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: scale(1);
         }
-        .remove-btn.hidden {
-            display: none;
-        }
+
         .modal {
             display: none;
             position: fixed;
-            z-index: 1000;
-            left: 0;
             top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-        }
-        .modal.active {
-            display: flex;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
             align-items: center;
             justify-content: center;
         }
+
+        .modal.active {
+            display: flex;
+        }
+
         .modal-content {
             background: white;
             padding: 30px;
             border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
             max-width: 400px;
             width: 90%;
-            animation: slideIn 0.3s ease;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
-        @keyframes slideIn {
-            from {
-                transform: translateY(-50px);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
-        }
+
         .modal-header {
             font-size: 1.5em;
             font-weight: bold;
-            color: #667eea;
             margin-bottom: 20px;
+            color: var(--text-dark);
         }
+
         .form-group {
             margin-bottom: 15px;
         }
+
         .form-group label {
             display: block;
-            margin-bottom: 8px;
-            color: #333;
+            margin-bottom: 5px;
             font-weight: 500;
+            color: var(--text-dark);
+            font-size: 0.9em;
         }
+
         .form-group input {
             width: 100%;
             padding: 10px;
-            border: 2px solid #ddd;
+            border: 1px solid var(--border);
             border-radius: 6px;
             font-size: 1em;
-            transition: border-color 0.2s;
+            transition: border-color 0.3s;
         }
+
         .form-group input:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(147, 51, 234, 0.1);
         }
+
         .modal-buttons {
             display: flex;
             gap: 10px;
             margin-top: 20px;
         }
-        .modal-buttons button {
+
+        .btn-submit {
             flex: 1;
             padding: 10px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
             border: none;
             border-radius: 6px;
-            font-size: 1em;
-            font-weight: bold;
+            font-weight: 600;
             cursor: pointer;
-            transition: background 0.2s;
+            transition: all 0.3s;
         }
-        .modal-buttons .confirm-btn {
-            background: #667eea;
-            color: white;
+
+        .btn-submit:hover {
+            transform: scale(1.02);
         }
-        .modal-buttons .confirm-btn:hover {
-            background: #764ba2;
-        }
-        .modal-buttons .cancel-btn {
-            background: #eee;
-            color: #333;
-        }
-        .modal-buttons .cancel-btn:hover {
-            background: #ddd;
-        }
-        .export-section {
-            background: white;
-            border-radius: 12px;
-            padding: 25px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            text-align: center;
-        }
-        .export-section h3 {
-            margin-bottom: 15px;
-            color: #333;
-        }
-        .export-btn {
-            padding: 12px 30px;
-            background: #27ae60;
-            color: white;
+
+        .btn-cancel {
+            flex: 1;
+            padding: 10px;
+            background: var(--border);
+            color: var(--text-dark);
             border: none;
-            border-radius: 8px;
-            font-size: 1em;
-            font-weight: bold;
+            border-radius: 6px;
+            font-weight: 600;
             cursor: pointer;
-            margin: 5px;
-            transition: background 0.2s;
         }
-        .export-btn:hover {
-            background: #229954;
+
+        .btn-cancel:hover {
+            background: #d1d5db;
         }
-        .reset-btn {
-            padding: 12px 30px;
-            background: #e74c3c;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 1em;
-            font-weight: bold;
-            cursor: pointer;
-            margin: 5px;
-            transition: background 0.2s;
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 30px;
         }
-        .reset-btn:hover {
-            background: #c0392b;
-        }
-        .admin-toggle-btn {
+
+        .control-btn {
             padding: 10px 20px;
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
+            background: white;
+            color: var(--text-dark);
             border: 2px solid white;
             border-radius: 8px;
-            font-size: 0.9em;
-            font-weight: bold;
+            font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.3s;
         }
-        .admin-toggle-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-        }
-        .admin-controls {
-            display: none;
-        }
-        .admin-controls.active {
-            display: block;
-        }
-        .logout-btn {
-            padding: 8px 15px;
-            background: #e74c3c;
+
+        .control-btn:hover {
+            background: rgba(255,255,255,0.1);
             color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 0.9em;
-            cursor: pointer;
-            margin-top: 15px;
-            transition: background 0.2s;
         }
-        .logout-btn:hover {
-            background: #c0392b;
-        }
-        .stats {
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 2px solid #f0f0f0;
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-        }
-        .stat {
+
+        .message {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
             text-align: center;
-        }
-        .stat-value {
-            font-size: 2em;
-            font-weight: bold;
-            color: #667eea;
-        }
-        .stat-label {
-            font-size: 0.9em;
-            color: #666;
-            margin-top: 5px;
-        }
-        .status-message {
-            text-align: center;
-            padding: 10px;
-            margin-bottom: 15px;
-            border-radius: 6px;
             display: none;
         }
-        .status-message.success {
-            background: #d4edda;
-            color: #155724;
+
+        .message.success {
+            background: #d1fae5;
+            color: #065f46;
             display: block;
         }
-        .status-message.error {
-            background: #f8d7da;
-            color: #721c24;
+
+        .message.error {
+            background: #fee2e2;
+            color: #991b1b;
             display: block;
         }
-        @media (max-width: 600px) {
+
+        .message.info {
+            background: #dbeafe;
+            color: #1e40af;
+            display: block;
+        }
+
+        .offline-banner {
+            background: #fef3c7;
+            color: #92400e;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            display: none;
+        }
+
+        .offline-banner.show {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
             .header h1 {
                 font-size: 1.8em;
             }
-            .timeslots {
+
+            .slots-grid {
                 grid-template-columns: 1fr;
             }
-            .stats {
-                grid-template-columns: 1fr;
+
+            .controls {
+                flex-direction: column;
+            }
+
+            .control-btn {
+                width: 100%;
             }
         }
     </style>
-    <script>
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzhFRcJajTDhB0AIK2eJJ5yX_Irpq0LZ9Xkez-ENznVhs3tDU_UCevHo4zipQNShmlU/exec';
-    </script>
 </head>
 <body>
     <div class="container">
         <div class="header">
             <h1>🎾 Tenisz nap - Pilates óra</h1>
-            <p>Regisztrálj az alábbi időpontok közül</p>
-            <div style="margin-top: 15px;">
-                <button id="adminToggleBtn" class="admin-toggle-btn" onclick="toggleAdminPanel()">🔐 Admin belépés</button>
-                <span id="adminStatus" style="color: #fff; margin-left: 10px; display: none;">✅ Admin mód aktív</span>
-            </div>
+            <p>Regisztrálj az óra időpontodra!</p>
         </div>
-        <div id="statusMessage" class="status-message"></div>
-        <div class="timeslots" id="timeslots"></div>
-        <div class="export-section">
-            <h3>📊 Regisztrációs adatok</h3>
-            <div class="stats">
-                <div class="stat">
-                    <div class="stat-value" id="total-registered">0</div>
-                    <div class="stat-label">Össz. regisztrált</div>
-                </div>
-                <div class="stat">
-                    <div class="stat-value" id="total-slots">18</div>
-                    <div class="stat-label">Össz. hely</div>
-                </div>
-                <div class="stat">
-                    <div class="stat-value" id="remaining-slots">18</div>
-                    <div class="stat-label">Szabad hely</div>
-                </div>
-            </div>
-            <div id="adminControls" class="admin-controls">
-                <hr style="margin: 20px 0; border: none; border-top: 2px solid #f0f0f0;">
-                <h4 style="color: #667eea; margin-bottom: 15px;">🔐 Admin Funkciók</h4>
-                <button class="export-btn" onclick="exportToCSV()">📥 Letöltés (CSV)</button>
-                <button class="export-btn" onclick="copyToClipboard()">📋 Másolás (Sheets-hez)</button>
-                <button class="reset-btn" onclick="resetAll()">🔄 Összes törlése</button>
-                <button class="logout-btn" onclick="logoutAdmin()">🔓 Kijelentkezés</button>
-            </div>
+
+        <div id="message" class="message"></div>
+        <div id="offlineBanner" class="offline-banner">⚠️ Offline mód - az adatok helyileg tárolódnak</div>
+
+        <div class="controls">
+            <button class="control-btn" onclick="toggleAdminLogin()">🔐 Admin Bejelentkezés</button>
+            <button class="control-btn" onclick="exportCSV()">📥 CSV Letöltés</button>
         </div>
+
+        <div id="timeslots" class="slots-grid"></div>
     </div>
-    <div id="registerModal" class="modal">
+
+    <!-- Registration Modal -->
+    <div id="registrationModal" class="modal">
         <div class="modal-content">
-            <div class="modal-header" id="modalTitle"></div>
+            <div class="modal-header" id="modalTitle">Regisztráció</div>
             <form onsubmit="submitRegistration(event)">
                 <div class="form-group">
                     <label for="nameInput">Név *</label>
-                    <input type="text" id="nameInput" required placeholder="pl. Kiss János">
+                    <input type="text" id="nameInput" required placeholder="Add meg a nevedet">
                 </div>
                 <div class="form-group">
-                    <label for="emailInput">Email (opcionális)</label>
-                    <input type="email" id="emailInput" placeholder="janos@example.com">
+                    <label for="emailInput">Email cím</label>
+                    <input type="email" id="emailInput" placeholder="add meg az email-ed (opcionális)">
                 </div>
                 <div class="modal-buttons">
-                    <button type="submit" class="confirm-btn">Regisztrálok</button>
-                    <button type="button" class="cancel-btn" onclick="closeModal()">Mégse</button>
+                    <button type="submit" class="btn-submit">Regisztrálás</button>
+                    <button type="button" class="btn-cancel" onclick="closeModal()">Mégsem</button>
                 </div>
             </form>
         </div>
     </div>
+
+    <!-- Admin Login Modal -->
     <div id="adminModal" class="modal">
         <div class="modal-content">
-            <div class="modal-header">🔐 Admin Belépés</div>
-            <form onsubmit="submitAdminPassword(event)">
+            <div class="modal-header">Admin Bejelentkezés</div>
+            <form onsubmit="submitAdminLogin(event)">
                 <div class="form-group">
                     <label for="adminPassword">Jelszó</label>
-                    <input type="password" id="adminPassword" required placeholder="Add meg az admin jelszót" autofocus>
+                    <input type="password" id="adminPassword" required placeholder="Add meg az admin jelszót">
                 </div>
                 <div class="modal-buttons">
-                    <button type="submit" class="confirm-btn">Belépés</button>
-                    <button type="button" class="cancel-btn" onclick="closeAdminModal()">Mégse</button>
+                    <button type="submit" class="btn-submit">Bejelentkezés</button>
+                    <button type="button" class="btn-cancel" onclick="closeAdminModal()">Mégsem</button>
                 </div>
             </form>
-            <div id="adminError" style="color: #e74c3c; margin-top: 15px; text-align: center; display: none;">
-                ❌ Hibás jelszó! Próbáld újra.
-            </div>
         </div>
     </div>
+
     <script>
-        const TIMESLOTS = [
-            { id: 0, time: '9:00-9:50', maxSlots: 6 },
-            { id: 1, time: '10:00-10:50', maxSlots: 6 },
-            { id: 2, time: '11:00-11:50', maxSlots: 6 }
-        ];
-        let registrations = {};
-        let currentSlotId = null;
-        let isAdminMode = false;
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwzy5-MW5xBZMxNhwgxO5tnUKZP0jeek5bfs946tF29hFcI7WvRWKGO2qcn-WP-nT6I/exec';
         const ADMIN_PASSWORD = 'admin123';
-        function showStatus(message, type = 'success') {
-            const statusEl = document.getElementById('statusMessage');
-            statusEl.textContent = message;
-            statusEl.className = 'status-message ' + type;
-            setTimeout(() => {
-                statusEl.className = 'status-message';
-            }, 3000);
-        }
-        async function init() {
-            await loadData();
+
+        let currentSlotId = null;
+        let adminMode = false;
+        let registrations = {};
+
+        const timeslots = {
+            0: '9:00 - 9:50',
+            1: '10:00 - 10:50',
+            2: '11:00 - 11:50'
+        };
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadRegistrations();
             renderTimeslots();
-            updateStats();
-            updateAdminUI();
-        }
-        function toggleAdminPanel() {
-            document.getElementById('adminModal').classList.add('active');
-            document.getElementById('adminPassword').value = '';
-            document.getElementById('adminError').style.display = 'none';
-        }
-        function closeAdminModal() {
-            document.getElementById('adminModal').classList.remove('active');
-            document.getElementById('adminPassword').value = '';
-            document.getElementById('adminError').style.display = 'none';
-        }
-        function submitAdminPassword(e) {
-            e.preventDefault();
-            const password = document.getElementById('adminPassword').value;
-            if (password === ADMIN_PASSWORD) {
-                isAdminMode = true;
-                closeAdminModal();
-                updateAdminUI();
-                showStatus('✅ Admin mód aktiválva!');
-            } else {
-                document.getElementById('adminError').style.display = 'block';
-                document.getElementById('adminPassword').value = '';
-                document.getElementById('adminPassword').focus();
-            }
-        }
-        function updateAdminUI() {
-            const adminControls = document.getElementById('adminControls');
-            const adminToggleBtn = document.getElementById('adminToggleBtn');
-            const adminStatus = document.getElementById('adminStatus');
-            const removeButtons = document.querySelectorAll('.remove-btn');
-            if (isAdminMode) {
-                adminControls.classList.add('active');
-                adminToggleBtn.textContent = '✅ Admin mód aktív';
-                adminStatus.style.display = 'inline-block';
-                removeButtons.forEach(btn => btn.classList.remove('hidden'));
-            } else {
-                adminControls.classList.remove('active');
-                adminToggleBtn.textContent = '🔐 Admin belépés';
-                adminStatus.style.display = 'none';
-                removeButtons.forEach(btn => btn.classList.add('hidden'));
-            }
-        }
-        function logoutAdmin() {
-            if (confirm('Biztosan kijelentkezel az admin módból?')) {
-                isAdminMode = false;
-                updateAdminUI();
-                showStatus('🔓 Kijelentkeztél');
-            }
-        }
-        async function loadData() {
+        });
+
+        async function loadRegistrations() {
             try {
-                const response = await fetch(APPS_SCRIPT_URL + '?action=getAll');
+                console.log('📍 Adatok betöltése a Google Sheet-ből...');
+                const url = APPS_SCRIPT_URL + '?action=getAll';
+                console.log('🔗 URL:', url);
+
+                const response = await fetch(url);
+                console.log('📦 Response status:', response.status);
+
                 const data = await response.json();
-                registrations = data;
-                console.log('✅ Adatok betöltve a Google Sheet-ből');
-            } catch (error) {
-                console.log('⚠️ Offline mód - localStorage használata:', error);
-                const stored = localStorage.getItem('pilatesRegistrations');
-                if (stored) {
-                    registrations = JSON.parse(stored);
+                console.log('📊 Kapott adatok:', data);
+
+                if (data.success) {
+                    registrations = data || {};
+                    delete registrations.success;
+                    console.log('✅ Adatok sikeresen betöltve:', registrations);
+                    renderTimeslots();
                 } else {
-                    TIMESLOTS.forEach(slot => {
-                        registrations[slot.id] = [];
-                    });
+                    throw new Error('API error');
                 }
+            } catch (error) {
+                console.warn('⚠️ Hálózati hiba - offline mód aktiválva', error);
+                document.getElementById('offlineBanner').classList.add('show');
+                loadFromLocalStorage();
             }
         }
-        function saveData() {
-            localStorage.setItem('pilatesRegistrations', JSON.stringify(registrations));
-            updateStats();
-        }
+
         function renderTimeslots() {
             const container = document.getElementById('timeslots');
             container.innerHTML = '';
-            TIMESLOTS.forEach(slot => {
-                const registered = registrations[String(slot.id)] || [];
-                const available = slot.maxSlots - registered.length;
-                const isFull = available <= 0;
-                const slotDiv = document.createElement('div');
-                slotDiv.className = 'timeslot';
-                slotDiv.innerHTML = `
-                    <div class="timeslot-time">⏰ ${slot.time}</div>
-                    <div class="timeslot-info">
-                        <div class="slot-count">
-                            <label>Szabad helyek</label>
-                            <div class="slot-number ${isFull ? 'full' : ''}">${available}/${slot.maxSlots}</div>
+
+            Object.keys(timeslots).forEach(slotId => {
+                const time = timeslots[slotId];
+                const participants = registrations[String(slotId)] || [];
+                const capacity = 6;
+                const filled = participants.length;
+                const percentage = (filled / capacity) * 100;
+                const isFull = filled >= capacity;
+
+                const card = document.createElement('div');
+                card.className = 'slot-card';
+                card.innerHTML = `
+                    <div class="slot-time">${time}</div>
+                    <div class="slot-capacity">
+                        <div class="capacity-bar">
+                            <div class="capacity-fill" style="width: ${percentage}%"></div>
                         </div>
+                        <div class="capacity-text">${filled}/${capacity}</div>
                     </div>
-                    <button class="register-btn" onclick="openModal(${slot.id})" ${isFull ? 'disabled' : ''}>
-                        ${isFull ? '❌ MEGTELT' : '✅ REGISZTRÁLOK'}
-                    </button>
-                    <div class="participants">
-                        <div class="participants-title">👥 Regisztráltak (${registered.length})</div>
-                        <div class="participant-list" id="list-${slot.id}">
-                            ${registered.length === 0 ? '<div style="color: #999; font-size: 0.9em; padding: 10px 0; text-align: center;">Még senki sem regisztrált</div>' : ''}
-                            ${registered.map((p, idx) => `
-                                <div class="participant">
-                                    <div class="participant-info">
-                                        <div class="participant-name">${p.name}</div>
-                                        ${p.email ? `<div class="participant-email">${p.email}</div>` : ''}
-                                    </div>
-                                    <button type="button" class="remove-btn" onclick="removeParticipant(${slot.id}, ${idx})">✕</button>
+                    <div class="participants-list">
+                        ${participants.length === 0 ? '<em style="color: var(--text-light);">Még senki nem regisztrált</em>' : ''}
+                        ${participants.map((p, idx) => `
+                            <div class="participant">
+                                <div>
+                                    <div class="participant-name">${escapeHtml(p.name)}</div>
+                                    ${p.email ? `<div class="participant-email">${escapeHtml(p.email)}</div>` : ''}
                                 </div>
-                            `).join('')}
-                        </div>
+                                ${adminMode ? `<button type="button" class="delete-btn" onclick="deleteParticipant('${slotId}', ${idx})">✕</button>` : ''}
+                            </div>
+                        `).join('')}
                     </div>
+                    <button class="register-btn" onclick="openModal(${slotId})" ${isFull ? 'disabled' : ''}>
+                        ${isFull ? '❌ Megtelt' : '✅ Regisztrálás'}
+                    </button>
                 `;
-                container.appendChild(slotDiv);
+                container.appendChild(card);
             });
         }
+
         function openModal(slotId) {
             currentSlotId = slotId;
-            const slot = TIMESLOTS.find(s => s.id === slotId);
-            document.getElementById('modalTitle').textContent = `Regisztráció - ${slot.time}`;
+            document.getElementById('modalTitle').textContent = `Regisztráció - ${timeslots[slotId]}`;
             document.getElementById('nameInput').value = '';
             document.getElementById('emailInput').value = '';
-            document.getElementById('registerModal').classList.add('active');
+            document.getElementById('registrationModal').classList.add('active');
             document.getElementById('nameInput').focus();
         }
+
         function closeModal() {
-            document.getElementById('registerModal').classList.remove('active');
+            document.getElementById('registrationModal').classList.remove('active');
             currentSlotId = null;
         }
-        async function submitRegistration(e) {
-            e.preventDefault();
+
+        async function submitRegistration(event) {
+            event.preventDefault();
+
             const name = document.getElementById('nameInput').value.trim();
             const email = document.getElementById('emailInput').value.trim();
-            
-            if (name) {
-                const slot = TIMESLOTS.find(s => s.id === currentSlotId);
-                const url = APPS_SCRIPT_URL + '?action=add&timeSlot=' + encodeURIComponent(slot.time) + 
-                            '&name=' + encodeURIComponent(name) + 
-                            '&email=' + encodeURIComponent(email || '');
-                
-                try {
-                    const response = await fetch(url);
-                    const data = await response.json();
+
+            if (!name) {
+                showMessage('A név megadása kötelező!', 'error');
+                return;
+            }
+
+            const slotKey = String(currentSlotId);
+
+            try {
+                console.log('📤 Regisztráció küldése...');
+                console.log('   - Időpont ID:', currentSlotId);
+                console.log('   - Név:', name);
+                console.log('   - Email:', email);
+
+                const url = new URL(APPS_SCRIPT_URL);
+                url.searchParams.append('action', 'add');
+                url.searchParams.append('slotId', currentSlotId);
+                url.searchParams.append('name', name);
+                url.searchParams.append('email', email || '');
+
+                console.log('🔗 Teljes URL:', url.toString());
+
+                const response = await fetch(url.toString());
+                const data = await response.json();
+
+                console.log('📦 Válasz a szervertől:', data);
+
+                if (data.success) {
+                    // Adatok frissítése lokálisan
+                    if (!registrations[slotKey]) {
+                        registrations[slotKey] = [];
+                    }
+                    registrations[slotKey].push({ name, email: email || '' });
+                    saveToLocalStorage();
+
                     console.log('✅ Regisztráció küldve a Google Sheet-be');
-                    showStatus('✅ Regisztrálva!');
-                } catch (error) {
-                    console.log('Error küldés:', error);
-                    showStatus('⚠️ Offline mód - csak lokálisan tárolódik', 'error');
+                    showMessage(`✅ Sikeresen regisztráltál a ${timeslots[currentSlotId]} órára!`, 'success');
+                    closeModal();
+                    renderTimeslots();
+                } else {
+                    throw new Error(data.message || 'Ismeretlen hiba');
                 }
-                
-                const slotKey = String(currentSlotId);
+            } catch (error) {
+                console.error('❌ Hiba a regisztrációnál:', error);
+
+                // Fallback: localStorage-ba mentés
                 if (!registrations[slotKey]) {
                     registrations[slotKey] = [];
                 }
                 registrations[slotKey].push({ name, email: email || '' });
-                saveData();
-                renderTimeslots();
+                saveToLocalStorage();
+
+                document.getElementById('offlineBanner').classList.add('show');
+                showMessage('⚠️ Offline módban regisztráltál. Az adatok lokálisan tárolódnak.', 'info');
                 closeModal();
+                renderTimeslots();
             }
         }
-        async function removeParticipant(slotId, idx) {
-            if (!isAdminMode) {
-                alert('❌ Admin jelszó szükséges!');
+
+        async function deleteParticipant(slotId, index) {
+            if (!adminMode) {
+                showMessage('Ehhez admin jog szükséges!', 'error');
                 return;
             }
-            const slot = TIMESLOTS.find(s => s.id === slotId);
-            const name = registrations[String(slotId)][idx].name;
-            
-            const url = APPS_SCRIPT_URL + '?action=remove&timeSlot=' + encodeURIComponent(slot.time) + 
-                        '&name=' + encodeURIComponent(name);
-            
-            try {
-                const response = await fetch(url);
-                const data = await response.json();
-                console.log('✅ Regisztráció törölve a Google Sheet-ből');
-            } catch (error) {
-                console.log('Error törlés:', error);
+
+            if (!confirm('Biztosan törlöd ezt a regisztrációt?')) {
+                return;
             }
-            
-            registrations[String(slotId)].splice(idx, 1);
-            saveData();
-            renderTimeslots();
-        }
-        function updateStats() {
-            let totalReg = 0;
-            let totalSlots = 0;
-            TIMESLOTS.forEach(slot => {
-                const count = registrations[String(slot.id)] ? registrations[String(slot.id)].length : 0;
-                totalReg += count;
-                totalSlots += slot.maxSlots;
-            });
-            document.getElementById('total-registered').textContent = totalReg;
-            document.getElementById('total-slots').textContent = totalSlots;
-            document.getElementById('remaining-slots').textContent = totalSlots - totalReg;
-        }
-        function exportToCSV() {
-            let csv = 'Időpont,Név,Email\n';
-            TIMESLOTS.forEach(slot => {
-                const registered = registrations[String(slot.id)] || [];
-                if (registered.length === 0) {
-                    csv += `${slot.time},(üres)\n`;
+
+            try {
+                const url = new URL(APPS_SCRIPT_URL);
+                url.searchParams.append('action', 'remove');
+                url.searchParams.append('slotId', slotId);
+                url.searchParams.append('index', index);
+
+                const response = await fetch(url.toString());
+                const data = await response.json();
+
+                if (data.success) {
+                    // Lokális törlés
+                    const slotKey = String(slotId);
+                    if (registrations[slotKey]) {
+                        registrations[slotKey].splice(index, 1);
+                    }
+                    saveToLocalStorage();
+                    showMessage('✅ Regisztráció törölve', 'success');
+                    renderTimeslots();
                 } else {
-                    registered.forEach((p, idx) => {
-                        csv += `${idx === 0 ? slot.time : ''},${p.name},"${p.email || ''}"\n`;
-                    });
+                    throw new Error(data.message || 'Hiba a törléskor');
                 }
+            } catch (error) {
+                console.error('Törlési hiba:', error);
+                showMessage('❌ Hiba a törléskor', 'error');
+            }
+        }
+
+        function toggleAdminLogin() {
+            document.getElementById('adminModal').classList.add('active');
+        }
+
+        function closeAdminModal() {
+            document.getElementById('adminModal').classList.remove('active');
+            document.getElementById('adminPassword').value = '';
+        }
+
+        function submitAdminLogin(event) {
+            event.preventDefault();
+            const password = document.getElementById('adminPassword').value;
+
+            if (password === ADMIN_PASSWORD) {
+                adminMode = true;
+                showMessage('✅ Admin módba léptél be!', 'success');
+                closeAdminModal();
+                renderTimeslots();
+            } else {
+                showMessage('❌ Helytelen jelszó!', 'error');
+            }
+        }
+
+        function exportCSV() {
+            let csv = 'Időpont,Név,Email,Regisztráció dátuma\n';
+
+            Object.keys(timeslots).forEach(slotId => {
+                const time = timeslots[slotId];
+                const participants = registrations[String(slotId)] || [];
+                participants.forEach(p => {
+                    const date = new Date().toLocaleString('hu-HU');
+                    csv += `"${time}","${p.name}","${p.email}","${date}"\n`;
+                });
             });
+
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement('a');
-            const url = URL.createObjectURL(blob);
-            link.setAttribute('href', url);
-            link.setAttribute('download', `tenisz-nap-pilates-${new Date().toISOString().split('T')[0]}.csv`);
+            link.href = URL.createObjectURL(blob);
+            link.download = 'pilates_regisztrációk.csv';
             link.click();
-            showStatus('📥 CSV letöltve!');
         }
-        function copyToClipboard() {
-            let text = 'Időpont\tNév\tEmail\n';
-            TIMESLOTS.forEach(slot => {
-                const registered = registrations[String(slot.id)] || [];
-                if (registered.length === 0) {
-                    text += `${slot.time}\t(üres)\n`;
-                } else {
-                    registered.forEach((p, idx) => {
-                        text += `${idx === 0 ? slot.time : ''}\t${p.name}\t${p.email || ''}\n`;
-                    });
-                }
-            });
-            navigator.clipboard.writeText(text).then(() => {
-                showStatus('✅ Vágólapra másolva! Sheets-be beszúrható!');
-            });
-        }
-        async function resetAll() {
-            if (confirm('⚠️ Biztosan törlöd az ÖSSZES regisztrációt? Ez nem visszavonható!')) {
-                const url = APPS_SCRIPT_URL + '?action=reset';
-                
-                try {
-                    const response = await fetch(url);
-                    const data = await response.json();
-                    console.log('✅ Összes regisztráció törölve');
-                } catch (error) {
-                    console.log('Error reset:', error);
-                }
-                
-                TIMESLOTS.forEach(slot => {
-                    registrations[String(slot.id)] = [];
-                });
-                saveData();
-                renderTimeslots();
-                showStatus('🔄 Összes törlve!');
+
+        function saveToLocalStorage() {
+            try {
+                localStorage.setItem('pilates_registrations', JSON.stringify(registrations));
+            } catch (e) {
+                console.warn('localStorage elérhetetlen', e);
             }
         }
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') closeModal();
-        });
-        init();
+
+        function loadFromLocalStorage() {
+            try {
+                const data = localStorage.getItem('pilates_registrations');
+                if (data) {
+                    registrations = JSON.parse(data);
+                    console.log('📂 Adatok betöltve az offline tárolóból:', registrations);
+                }
+            } catch (e) {
+                console.warn('localStorage betöltési hiba', e);
+            }
+        }
+
+        function showMessage(text, type) {
+            const msgEl = document.getElementById('message');
+            msgEl.textContent = text;
+            msgEl.className = `message ${type}`;
+            setTimeout(() => {
+                msgEl.className = 'message';
+            }, 5000);
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
     </script>
 </body>
 </html>
