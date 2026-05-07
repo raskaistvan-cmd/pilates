@@ -181,7 +181,7 @@
         }
 
         .modal {
-            display: none !important;
+            display: none;
             position: fixed;
             top: 0;
             left: 0;
@@ -191,15 +191,10 @@
             z-index: 1000;
             align-items: center;
             justify-content: center;
-            visibility: hidden;
-            opacity: 0;
-            transition: opacity 0.3s ease;
         }
 
         .modal.active {
-            display: flex !important;
-            visibility: visible;
-            opacity: 1;
+            display: flex;
         }
 
         .modal-content {
@@ -209,6 +204,22 @@
             max-width: 400px;
             width: 90%;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            position: relative;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .close-btn:hover {
+            color: #000;
         }
 
         .modal-header {
@@ -216,6 +227,7 @@
             font-weight: bold;
             margin-bottom: 20px;
             color: var(--text-dark);
+            padding-right: 30px;
         }
 
         .form-group {
@@ -387,11 +399,11 @@
         <div id="timeslots" class="slots-grid"></div>
     </div>
 
-    <!-- Registration Modal -->
     <div id="registrationModal" class="modal">
         <div class="modal-content">
+            <button class="close-btn" onclick="forceCloseModal()">✕</button>
             <div class="modal-header" id="modalTitle">Regisztráció</div>
-            <form onsubmit="submitRegistration(event)">
+            <form id="regForm" onsubmit="submitRegistration(event)">
                 <div class="form-group">
                     <label for="nameInput">Név *</label>
                     <input type="text" id="nameInput" required placeholder="Add meg a nevedet">
@@ -402,15 +414,15 @@
                 </div>
                 <div class="modal-buttons">
                     <button type="submit" class="btn-submit">Regisztrálás</button>
-                    <button type="button" class="btn-cancel" onclick="closeModal()">Mégsem</button>
+                    <button type="button" class="btn-cancel" onclick="forceCloseModal()">Mégsem</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Admin Login Modal -->
     <div id="adminModal" class="modal">
         <div class="modal-content">
+            <button class="close-btn" onclick="closeAdminModal()">✕</button>
             <div class="modal-header">Admin Bejelentkezés</div>
             <form onsubmit="submitAdminLogin(event)">
                 <div class="form-group">
@@ -514,20 +526,19 @@
             document.getElementById('nameInput').focus();
         }
 
-        function closeModal() {
+        function forceCloseModal() {
             const modal = document.getElementById('registrationModal');
             modal.classList.remove('active');
+            document.getElementById('regForm').reset();
             currentSlotId = null;
         }
 
         async function submitRegistration(event) {
             event.preventDefault();
 
-            const modal = document.getElementById('registrationModal');
-            const form = event.target;
-            const submitBtn = form.querySelector('button[type="submit"]');
+            const submitBtn = event.target.querySelector('button[type="submit"]');
             submitBtn.disabled = true;
-            submitBtn.textContent = '⏳ Küldés folyamatban...';
+            submitBtn.textContent = '⏳ Küldés...';
 
             const name = document.getElementById('nameInput').value.trim();
             const email = document.getElementById('emailInput').value.trim();
@@ -557,10 +568,11 @@
                     }
                     registrations[slotKey].push({ name, email: email || '' });
                     saveToLocalStorage();
-                    showMessage(`✅ Sikeresen regisztráltál a ${timeslots[currentSlotId]} órára!`, 'success');
+                    showMessage(`✅ Sikeresen regisztráltál!`, 'success');
                     renderTimeslots();
+                    forceCloseModal();
                 } else {
-                    throw new Error(data.message || 'Ismeretlen hiba');
+                    throw new Error(data.message || 'Hiba');
                 }
             } catch (error) {
                 if (!registrations[slotKey]) {
@@ -569,16 +581,10 @@
                 registrations[slotKey].push({ name, email: email || '' });
                 saveToLocalStorage();
                 document.getElementById('offlineBanner').classList.add('show');
-                showMessage('⚠️ Offline módban regisztráltál. Az adatok lokálisan tárolódnak.', 'info');
+                showMessage('⚠️ Offline módban regisztráltál!', 'info');
                 renderTimeslots();
+                forceCloseModal();
             }
-            
-            // Garantáltan zárja be
-            setTimeout(() => {
-                modal.classList.remove('active');
-                form.reset();
-                currentSlotId = null;
-            }, 300);
         }
 
         async function deleteParticipant(slotId, index) {
@@ -587,9 +593,7 @@
                 return;
             }
 
-            if (!confirm('Biztosan törlöd ezt a regisztrációt?')) {
-                return;
-            }
+            if (!confirm('Biztosan törlöd?')) return;
 
             try {
                 const url = new URL(APPS_SCRIPT_URL);
@@ -606,13 +610,11 @@
                         registrations[slotKey].splice(index, 1);
                     }
                     saveToLocalStorage();
-                    showMessage('✅ Regisztráció törölve', 'success');
+                    showMessage('✅ Törölve', 'success');
                     renderTimeslots();
-                } else {
-                    throw new Error(data.message || 'Hiba a törléskor');
                 }
             } catch (error) {
-                showMessage('❌ Hiba a törléskor', 'error');
+                showMessage('❌ Hiba', 'error');
             }
         }
 
@@ -631,50 +633,42 @@
 
             if (password === ADMIN_PASSWORD) {
                 adminMode = true;
-                showMessage('✅ Admin módba léptél be!', 'success');
+                showMessage('✅ Admin mód', 'success');
                 closeAdminModal();
                 renderTimeslots();
             } else {
-                showMessage('❌ Helytelen jelszó!', 'error');
+                showMessage('❌ Helytelen jelszó', 'error');
             }
         }
 
         function exportCSV() {
-            let csv = 'Időpont,Név,Email,Regisztráció dátuma\n';
-
+            let csv = 'Időpont,Név,Email\n';
             Object.keys(timeslots).forEach(slotId => {
                 const time = timeslots[slotId];
                 const participants = registrations[String(slotId)] || [];
                 participants.forEach(p => {
-                    const date = new Date().toLocaleString('hu-HU');
-                    csv += `"${time}","${p.name}","${p.email}","${date}"\n`;
+                    csv += `"${time}","${p.name}","${p.email}"\n`;
                 });
             });
 
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
-            link.download = 'pilates_regisztrációk.csv';
+            link.download = 'pilates.csv';
             link.click();
         }
 
         function saveToLocalStorage() {
             try {
                 localStorage.setItem('pilates_registrations', JSON.stringify(registrations));
-            } catch (e) {
-                console.warn('localStorage elérhetetlen', e);
-            }
+            } catch (e) {}
         }
 
         function loadFromLocalStorage() {
             try {
                 const data = localStorage.getItem('pilates_registrations');
-                if (data) {
-                    registrations = JSON.parse(data);
-                }
-            } catch (e) {
-                console.warn('localStorage betöltési hiba', e);
-            }
+                if (data) registrations = JSON.parse(data);
+            } catch (e) {}
         }
 
         function showMessage(text, type) {
