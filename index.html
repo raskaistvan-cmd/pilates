@@ -565,6 +565,7 @@
             const offlineMsg = document.getElementById('offlineMessage');
 
             try {
+                alert('🔄 Regisztráció indult: ' + name);
                 console.log('submitRegistration started, slotId:', currentSlotId, 'name:', name);
 
                 const url = `${APPS_SCRIPT_URL}?action=add&slotId=${currentSlotId}&name=${encodeURIComponent(name)}&email=${encodeURIComponent(email)}`;
