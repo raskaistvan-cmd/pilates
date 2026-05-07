@@ -441,13 +441,14 @@
       <h3>Admin funkciók</h3>
       <div class="admin-buttons" style="flex-direction: column;">
         <button class="btn-danger" onclick="resetAllRegistrations()">🗑️ Összes törlése</button>
-        <button class="btn-secondary" onclick="exitAdminMode()">🔓 Kilépés</button>
+        <button class="btn-secondary" onclick="closeAdminFunctionModal()">❌ Bezárás</button>
+        <button class="btn-secondary" onclick="exitAdminMode()">🔓 Kilépés az admin módból</button>
       </div>
     </div>
   </div>
 
   <script>
-    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwYrf0L6oMnbx6BqtjgFZ5AqodjoxG023pmUzVQhubDAjpTA9Jg2uNQ2hP5vyL2VlW9/exec';
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwVqzBzEgbVTWmIhUEQ4kTN1Hv2dgpq8Pt1YQuQJM-Uh0jclfSUMmXpyfD8OFMDo2xT/exec';
     const ADMIN_PASSWORD = 'admin123';
 
     let selectedSlot = null;
@@ -531,6 +532,13 @@
       const name = document.getElementById('nameInput').value.trim();
       if (!name) {
         showError('Add meg a nevedet!');
+        return;
+      }
+
+      // ✅ KAPACITÁS ELLENŐRZÉS
+      const currentCount = registrations[String(selectedSlot)].length;
+      if (currentCount >= 6) {
+        showError('Ez az időpont már megtelt! (6/6 fő)');
         return;
       }
 
@@ -623,6 +631,11 @@
     function closeAdminModal() {
       document.getElementById('adminModal').classList.remove('active');
       document.getElementById('adminPassword').value = '';
+    }
+
+    // Admin funkciók modal bezárása (de admin mód marad aktív)
+    function closeAdminFunctionModal() {
+      document.getElementById('adminFunctionModal').classList.remove('active');
     }
 
     // Admin módból kilépés
