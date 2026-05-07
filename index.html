@@ -553,14 +553,19 @@
         }
 
         function closeRegistrationModal() {
-            document.getElementById('registrationModal').classList.remove('active');
-            document.getElementById('registrationForm').reset();
-            document.getElementById('successMessage').classList.remove('show');
-            document.getElementById('offlineMessage').classList.remove('show');
-            document.getElementById('submitBtn').disabled = false;
-            document.getElementById('submitBtn').textContent = 'Regisztráció';
-            currentSlotId = null;
-        }
+    document.getElementById('registrationModal').classList.remove('active');
+    
+    // Explicit kitörlés
+    document.getElementById('participantName').value = '';
+    document.getElementById('participantEmail').value = '';
+    
+    document.getElementById('registrationForm').reset();
+    document.getElementById('successMessage').classList.remove('show');
+    document.getElementById('offlineMessage').classList.remove('show');
+    document.getElementById('submitBtn').disabled = false;
+    document.getElementById('submitBtn').textContent = 'Regisztráció';
+    currentSlotId = null;
+}
 
         function openAdminModal() {
             document.getElementById('adminModal').classList.add('active');
