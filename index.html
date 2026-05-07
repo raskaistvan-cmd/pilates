@@ -659,12 +659,12 @@
 
         function submitAdminLogin(event) {
             event.preventDefault();
-            const password = document.getElementById('adminPassword').value;
+            const password = document.getElementById('adminPassword').value.trim();
             if (password === 'admin123') {
                 document.getElementById('adminPanel').style.display = 'block';
                 document.getElementById('adminPassword').value = '';
             } else {
-                alert('Hibás jelszó!');
+                alert('Hibás jelszó! A helyes jelszó: admin123');
             }
         }
 
