@@ -600,29 +600,18 @@
                 console.log('Server response:', data);
 
                 if (data.success) {
-                    console.log('Registration successful! Using data from add action...');
-                    console.log('Data from add action:', data);
-
-                    // Az add action már visszaadja az összes regisztrációs adatot
-                    // Közvetlenül használjuk azokat
-                    if (data["0"] !== undefined || data["1"] !== undefined || data["2"] !== undefined) {
-                        registrations = data;
-                        console.log('Registrations updated from add response:', registrations);
-                        localStorage.setItem('pilatesRegistrations', JSON.stringify(registrations));
-                    } else if (data.registrations) {
-                        registrations = data.registrations;
-                        console.log('Registrations updated from registrations field:', registrations);
-                        localStorage.setItem('pilatesRegistrations', JSON.stringify(registrations));
-                    }
-
+                    console.log('Registration successful! Reloading fresh data...');
                     successMsg.classList.add('show');
                     offlineMsg.classList.remove('show');
 
+                    // Frissen lekérjük az összes adatot az Apps Script-ből
+                    await loadRegistrations();
+
                     setTimeout(() => {
-                        console.log('Closing modal and rendering...');
+                        console.log('Closing modal and rendering with fresh data...');
                         closeRegistrationModal();
                         renderTimeslots();
-                    }, 500);
+                    }, 300);
                 } else {
                     throw new Error('Server returned success: false');
                 }
