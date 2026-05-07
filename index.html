@@ -262,6 +262,11 @@
             transform: scale(1.02);
         }
 
+        .btn-submit:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
         .btn-cancel {
             flex: 1;
             padding: 10px;
@@ -416,7 +421,7 @@
     </div>
 
     <script>
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwHBnEUsrBvlbH0-y4H_Mj4ZYfHgz5QRnZdQKMVBSjFSm9crjTEGycg9Corm6yetwCX/exec';
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwVqzBzEgbVTWmIhUEQ4kTN1Hv2dgpq8Pt1YQuQJM-Uh0jclfSUMmXpyfD8OFMDo2xT/exec';
         const ADMIN_PASSWORD = 'admin123';
 
         let currentSlotId = null;
@@ -521,11 +526,18 @@
         async function submitRegistration(event) {
             event.preventDefault();
 
+            // Disable the submit button immediately to prevent double-submission
+            const submitBtn = event.target.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.textContent = '⏳ Küldés folyamatban...';
+
             const name = document.getElementById('nameInput').value.trim();
             const email = document.getElementById('emailInput').value.trim();
 
             if (!name) {
                 showMessage('A név megadása kötelező!', 'error');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Regisztrálás';
                 return;
             }
 
@@ -579,6 +591,12 @@
                 showMessage('⚠️ Offline módban regisztráltál. Az adatok lokálisan tárolódnak.', 'info');
                 closeModal();
                 renderTimeslots();
+            } finally {
+                // Re-enable the button if modal is still open
+                if (document.getElementById('registrationModal').classList.contains('active')) {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Regisztrálás';
+                }
             }
         }
 
