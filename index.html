@@ -590,8 +590,15 @@
                 showMessage('⚠️ Offline módban regisztráltál. Az adatok lokálisan tárolódnak.', 'info');
                 renderTimeslots();
             } finally {
-                // MINDIG zárja be a modalt
-                closeModal();
+                // GARANTÁLTAN zárja be a modalt
+                const modal = document.getElementById('registrationModal');
+                modal.classList.remove('active');
+                modal.style.display = 'none';
+                currentSlotId = null;
+                
+                // Input mezők törlése
+                document.getElementById('nameInput').value = '';
+                document.getElementById('emailInput').value = '';
             }
         }
 
