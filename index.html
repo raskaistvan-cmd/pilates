@@ -461,17 +461,23 @@
 
         async function loadRegistrations() {
             try {
+                console.log('loadRegistrations: Fetching from getAll...');
                 const response = await fetch(`${APPS_SCRIPT_URL}?action=getAll`);
                 const data = await response.json();
+                console.log('loadRegistrations: Response from getAll:', data);
+                alert('📥 getAll válasz:\n' + JSON.stringify(data));
 
                 if (data.success) {
                     registrations = data.registrations || { "0": [], "1": [], "2": [] };
+                    console.log('loadRegistrations: Updated registrations:', registrations);
+                    alert('✅ Frissített registrations:\n' + JSON.stringify(registrations));
                     localStorage.setItem('pilatesRegistrations', JSON.stringify(registrations));
                 } else {
                     throw new Error('Failed to fetch');
                 }
             } catch (error) {
                 console.error('Error loading registrations:', error);
+                alert('❌ Hiba a loadRegistrations-ben: ' + error.message);
                 const saved = localStorage.getItem('pilatesRegistrations');
                 registrations = saved ? JSON.parse(saved) : { "0": [], "1": [], "2": [] };
             }
