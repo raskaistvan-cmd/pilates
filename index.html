@@ -467,14 +467,28 @@
                 console.log('loadRegistrations: Response from getAll:', data);
                 alert('📥 getAll válasz:\n' + JSON.stringify(data));
 
-                if (data.success) {
-                    registrations = data.registrations || { "0": [], "1": [], "2": [] };
-                    console.log('loadRegistrations: Updated registrations:', registrations);
-                    alert('✅ Frissített registrations:\n' + JSON.stringify(registrations));
-                    localStorage.setItem('pilatesRegistrations', JSON.stringify(registrations));
-                } else {
-                    throw new Error('Failed to fetch');
+                // Ha az adatok közvetlenül az registrations objektum (van "0", "1", "2" kulcs)
+                if (data["0"] !== undefined || data["1"] !== undefined || data["2"] !== undefined) {
+                    registrations = data;
+                    console.log('loadRegistrations: Direct registrations object:', registrations);
+                    alert('✅ Frissített registrations (direct):\n' + JSON.stringify(registrations));
                 }
+                // Ha az adatok a registrations field-ben vannak
+                else if (data.success && data.registrations) {
+                    registrations = data.registrations;
+                    console.log('loadRegistrations: Registrations from field:', registrations);
+                    alert('✅ Frissített registrations (field):\n' + JSON.stringify(registrations));
+                }
+                // Fallback
+                else if (data.registrations) {
+                    registrations = data.registrations;
+                    console.log('loadRegistrations: Registrations from field (no success):', registrations);
+                    alert('✅ Frissített registrations (fallback):\n' + JSON.stringify(registrations));
+                } else {
+                    throw new Error('Invalid response format: ' + JSON.stringify(data));
+                }
+
+                localStorage.setItem('pilatesRegistrations', JSON.stringify(registrations));
             } catch (error) {
                 console.error('Error loading registrations:', error);
                 alert('❌ Hiba a loadRegistrations-ben: ' + error.message);
@@ -586,15 +600,26 @@
                 console.log('Server response:', data);
 
                 if (data.success) {
-                    console.log('Registration successful! Reloading data from server...');
+                    console.log('Registration successful! Using data from add action...');
+                    console.log('Data from add action:', data);
+
+                    // Az add action már visszaadja az összes regisztrációs adatot
+                    // Közvetlenül használjuk azokat
+                    if (data["0"] !== undefined || data["1"] !== undefined || data["2"] !== undefined) {
+                        registrations = data;
+                        console.log('Registrations updated from add response:', registrations);
+                        localStorage.setItem('pilatesRegistrations', JSON.stringify(registrations));
+                    } else if (data.registrations) {
+                        registrations = data.registrations;
+                        console.log('Registrations updated from registrations field:', registrations);
+                        localStorage.setItem('pilatesRegistrations', JSON.stringify(registrations));
+                    }
+
                     successMsg.classList.add('show');
                     offlineMsg.classList.remove('show');
 
-                    // Fetch fresh data from server to ensure we have the latest registrations
-                    await loadRegistrations();
-
                     setTimeout(() => {
-                        console.log('Closing modal and rendering with fresh data...');
+                        console.log('Closing modal and rendering...');
                         closeRegistrationModal();
                         renderTimeslots();
                     }, 500);
