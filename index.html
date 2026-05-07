@@ -448,18 +448,16 @@
     </div>
 
     <script>
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw-OaldlzL6ma5uL6lvBsiu9T9SE7tU0DhFZe-K891bwEHkyd2pYpCGUSvO56qw9dAp/exec';
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwVqzBzEgbVTWmIhUEQ4kTN1Hv2dgpq8Pt1YQuQJM-Uh0jclfSUMmXpyfD8OFMDo2xT/exec';
 
         let registrations = {};
         let currentSlotId = null;
-        let adminLoggedIn = false;  // Admin jelszó védelme
+        let adminLoggedIn = false;
 
-        // Initialize
         document.addEventListener('DOMContentLoaded', async function() {
             await loadRegistrations();
             renderTimeslots();
 
-            // Auto-refresh minden 5 másodpercben
             setInterval(async () => {
                 await loadRegistrations();
                 renderTimeslots();
@@ -468,32 +466,21 @@
 
         async function loadRegistrations() {
             try {
-                console.log('loadRegistrations: Fetching from getAll...');
                 const response = await fetch(`${APPS_SCRIPT_URL}?action=getAll`);
                 const data = await response.json();
-                console.log('loadRegistrations: Response from getAll:', data);
 
-                // Ha az adatok közvetlenül az registrations objektum (van "0", "1", "2" kulcs)
                 if (data["0"] !== undefined || data["1"] !== undefined || data["2"] !== undefined) {
                     registrations = data;
-                    console.log('✅ Registrations loaded (direct)');
-                }
-                // Ha az adatok a registrations field-ben vannak
-                else if (data.success && data.registrations) {
+                } else if (data.success && data.registrations) {
                     registrations = data.registrations;
-                    console.log('✅ Registrations loaded (field)');
-                }
-                // Fallback
-                else if (data.registrations) {
+                } else if (data.registrations) {
                     registrations = data.registrations;
-                    console.log('✅ Registrations loaded (fallback)');
                 } else {
-                    throw new Error('Invalid response format: ' + JSON.stringify(data));
+                    throw new Error('Invalid response format');
                 }
 
                 localStorage.setItem('pilatesRegistrations', JSON.stringify(registrations));
             } catch (error) {
-                console.error('Error loading registrations:', error);
                 const saved = localStorage.getItem('pilatesRegistrations');
                 registrations = saved ? JSON.parse(saved) : { "0": [], "1": [], "2": [] };
             }
@@ -533,12 +520,8 @@
 
                 card.innerHTML = `
                     <div class="timeslot-time">${slot.time}</div>
-                    <div class="timeslot-capacity">
-                        ${participants.length}/6 hely foglalt
-                    </div>
-                    <div class="participant-list">
-                        ${participantHTML || '<em>Még nincs regisztrált</em>'}
-                    </div>
+                    <div class="timeslot-capacity">${participants.length}/6 hely foglalt</div>
+                    <div class="participant-list">${participantHTML || '<em>Még nincs regisztrált</em>'}</div>
                 `;
 
                 grid.appendChild(card);
@@ -555,7 +538,6 @@
             document.getElementById('registrationModal').classList.remove('active');
             document.getElementById('registrationForm').reset();
             document.getElementById('successMessage').classList.remove('show');
-            document.getElementById('offlineMessage').classList.remove('show');
             document.getElementById('submitBtn').disabled = false;
             document.getElementById('submitBtn').textContent = 'Regisztráció';
             currentSlotId = null;
@@ -567,7 +549,7 @@
         }
 
         function closeAdminModal() {
-            adminLoggedIn = false;  // Kijelentkezés
+            adminLoggedIn = false;
             document.getElementById('adminModal').classList.remove('active');
             document.getElementById('adminPassword').value = '';
             document.getElementById('adminPanel').style.display = 'none';
@@ -577,64 +559,37 @@
             event.preventDefault();
 
             const name = document.getElementById('participantName').value.trim();
-            if (!name) {
-                alert('Kérlek add meg a neved!');
-                return;
-            }
+            const email = document.getElementById('participantEmail').value.trim();
+
+            if (!name || !email) return;
 
             const submitBtn = document.getElementById('submitBtn');
             submitBtn.disabled = true;
             submitBtn.textContent = '⏳ Küldés folyamatban...';
 
-            const email = document.getElementById('participantEmail').value.trim();
-            const successMsg = document.getElementById('successMessage');
-            const offlineMsg = document.getElementById('offlineMessage');
-
             try {
-                console.log('submitRegistration started, slotId:', currentSlotId, 'name:', name);
-
                 const url = `${APPS_SCRIPT_URL}?action=add&slotId=${currentSlotId}&name=${encodeURIComponent(name)}&email=${encodeURIComponent(email)}`;
-                console.log('Fetching from:', url);
-
                 const response = await Promise.race([
                     fetch(url),
                     new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 10000))
                 ]);
 
-                console.log('Response received:', response.status);
                 const data = await response.json();
-                console.log('Server response:', data);
 
                 if (data.success) {
-                    console.log('Registration successful! Reloading fresh data...');
-                    successMsg.classList.add('show');
-                    offlineMsg.classList.remove('show');
-
-                    // Frissen lekérjük az összes adatot az Apps Script-ből
+                    document.getElementById('successMessage').classList.add('show');
                     await loadRegistrations();
-
                     setTimeout(() => {
-                        console.log('Closing modal and rendering with fresh data...');
                         closeRegistrationModal();
                         renderTimeslots();
                     }, 300);
                 } else {
-                    throw new Error(data.error || 'Server returned success: false');
+                    throw new Error(data.error || 'Regisztráció sikertelen');
                 }
             } catch (error) {
-                console.error('Error occurred:', error.message);
-
-                // Hibaüzenet alert-ben
                 alert('⚠️ ' + error.message);
-
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Regisztráció';
-            } finally {
-                // Biztonsági reset gomb
-                setTimeout(() => {
-                    submitBtn.disabled = false;
-                    submitBtn.textContent = 'Regisztráció';
-                }, 2000);
             }
         }
 
@@ -653,11 +608,6 @@
                         registrations = data.registrations || registrations;
                         localStorage.setItem('pilatesRegistrations', JSON.stringify(registrations));
                         renderTimeslots();
-                    })
-                    .catch(() => {
-                        registrations[slotId].splice(index, 1);
-                        localStorage.setItem('pilatesRegistrations', JSON.stringify(registrations));
-                        renderTimeslots();
                     });
             }
         }
@@ -666,7 +616,7 @@
             event.preventDefault();
             const password = document.getElementById('adminPassword').value.trim();
             if (password === 'admin123') {
-                adminLoggedIn = true;  // Bejelentkezés flag
+                adminLoggedIn = true;
                 document.getElementById('adminPanel').style.display = 'block';
                 document.getElementById('adminPassword').value = '';
             } else {
@@ -675,46 +625,33 @@
         }
 
         async function resetAllRegistrations() {
-            if (confirm('Biztosan törlöd az ÖSSZES regisztrációt? Ez nem vonható vissza!')) {
-                try {
-                    const response = await fetch(`${APPS_SCRIPT_URL}?action=reset`);
-                    const data = await response.json();
-                    registrations = data.registrations || { "0": [], "1": [], "2": [] };
-                    localStorage.setItem('pilatesRegistrations', JSON.stringify(registrations));
-                    renderTimeslots();
-                    closeAdminModal();
-                    alert('Összes regisztráció törölve!');
-                } catch (error) {
-                    console.error('Error resetting:', error);
-                    registrations = { "0": [], "1": [], "2": [] };
-                    localStorage.setItem('pilatesRegistrations', JSON.stringify(registrations));
-                    renderTimeslots();
-                    closeAdminModal();
-                }
+            if (confirm('Biztosan törlöd az ÖSSZES regisztrációt?')) {
+                fetch(`${APPS_SCRIPT_URL}?action=reset`)
+                    .then(r => r.json())
+                    .then(data => {
+                        registrations = data.registrations || { "0": [], "1": [], "2": [] };
+                        localStorage.setItem('pilatesRegistrations', JSON.stringify(registrations));
+                        renderTimeslots();
+                        closeAdminModal();
+                        alert('Összes regisztráció törölve!');
+                    });
             }
         }
 
         function exportToCSV() {
             let csv = 'Időpont,Név,E-mail\n';
-
-            const slotTimes = {
-                '0': '9:00-9:50',
-                '1': '10:00-10:50',
-                '2': '11:00-11:50'
-            };
+            const slotTimes = { '0': '9:00-9:50', '1': '10:00-10:50', '2': '11:00-11:50' };
 
             Object.keys(registrations).forEach(slotId => {
-                const time = slotTimes[slotId];
                 registrations[slotId].forEach(p => {
-                    csv += `"${time}","${p.name}","${p.email || ''}"\n`;
+                    csv += `"${slotTimes[slotId]}","${p.name}","${p.email || ''}"\n`;
                 });
             });
 
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement('a');
-            const url = URL.createObjectURL(blob);
-            link.setAttribute('href', url);
-            link.setAttribute('download', `pilates_registrations_${new Date().toISOString().split('T')[0]}.csv`);
+            link.href = URL.createObjectURL(blob);
+            link.download = `pilates_${new Date().toISOString().split('T')[0]}.csv`;
             link.click();
         }
     </script>
