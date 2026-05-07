@@ -527,7 +527,9 @@
             event.preventDefault();
 
             // Disable the submit button immediately to prevent double-submission
-            const submitBtn = event.target.querySelector('button[type="submit"]');
+            const modal = document.getElementById('registrationModal');
+            const form = event.target;
+            const submitBtn = form.querySelector('button[type="submit"]');
             submitBtn.disabled = true;
             submitBtn.textContent = '⏳ Küldés folyamatban...';
 
@@ -545,32 +547,22 @@
 
             try {
                 console.log('📤 Regisztráció küldése...');
-                console.log('   - Időpont ID:', currentSlotId);
-                console.log('   - Név:', name);
-                console.log('   - Email:', email);
-
                 const url = new URL(APPS_SCRIPT_URL);
                 url.searchParams.append('action', 'add');
                 url.searchParams.append('slotId', currentSlotId);
                 url.searchParams.append('name', name);
                 url.searchParams.append('email', email || '');
 
-                console.log('🔗 Teljes URL:', url.toString());
-
                 const response = await fetch(url.toString());
                 const data = await response.json();
 
-                console.log('📦 Válasz a szervertől:', data);
-
                 if (data.success) {
-                    // Adatok frissítése lokálisan
                     if (!registrations[slotKey]) {
                         registrations[slotKey] = [];
                     }
                     registrations[slotKey].push({ name, email: email || '' });
                     saveToLocalStorage();
 
-                    console.log('✅ Regisztráció küldve a Google Sheet-be');
                     showMessage(`✅ Sikeresen regisztráltál a ${timeslots[currentSlotId]} órára!`, 'success');
                     renderTimeslots();
                 } else {
@@ -579,7 +571,6 @@
             } catch (error) {
                 console.error('❌ Hiba a regisztrációnál:', error);
 
-                // Fallback: localStorage-ba mentés
                 if (!registrations[slotKey]) {
                     registrations[slotKey] = [];
                 }
@@ -589,17 +580,15 @@
                 document.getElementById('offlineBanner').classList.add('show');
                 showMessage('⚠️ Offline módban regisztráltál. Az adatok lokálisan tárolódnak.', 'info');
                 renderTimeslots();
-            } finally {
-                // GARANTÁLTAN zárja be a modalt
-                const modal = document.getElementById('registrationModal');
+            }
+            
+            // BIZTOSAN zárja be a modalt - setTimeout-ben
+            setTimeout(() => {
                 modal.classList.remove('active');
                 modal.style.display = 'none';
+                form.reset();
                 currentSlotId = null;
-                
-                // Input mezők törlése
-                document.getElementById('nameInput').value = '';
-                document.getElementById('emailInput').value = '';
-            }
+            }, 100);
         }
 
         async function deleteParticipant(slotId, index) {
