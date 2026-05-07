@@ -565,26 +565,39 @@
             const offlineMsg = document.getElementById('offlineMessage');
 
             try {
+                console.log('submitRegistration started, slotId:', currentSlotId, 'name:', name);
+
                 const url = `${APPS_SCRIPT_URL}?action=add&slotId=${currentSlotId}&name=${encodeURIComponent(name)}&email=${encodeURIComponent(email)}`;
-                const response = await fetch(url);
+                console.log('Fetching from:', url);
+
+                const response = await Promise.race([
+                    fetch(url),
+                    new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 10000))
+                ]);
+
+                console.log('Response received:', response.status);
                 const data = await response.json();
+                console.log('Data parsed:', data);
 
                 if (data.success) {
+                    console.log('Success! Closing modal...');
                     registrations = data.registrations || registrations;
                     localStorage.setItem('pilatesRegistrations', JSON.stringify(registrations));
                     successMsg.classList.add('show');
                     offlineMsg.classList.remove('show');
 
-                    // Explicit close modal és renderelés
                     setTimeout(() => {
+                        console.log('Closing modal and rendering...');
                         closeRegistrationModal();
                         renderTimeslots();
                     }, 1000);
                 } else {
-                    throw new Error('Server error');
+                    throw new Error('Server returned success: false');
                 }
             } catch (error) {
-                console.error('Error:', error);
+                console.error('Error occurred:', error.message);
+                console.log('Switching to offline mode...');
+
                 // Fallback to localStorage
                 if (!registrations[String(currentSlotId)]) {
                     registrations[String(currentSlotId)] = [];
@@ -594,12 +607,19 @@
 
                 offlineMsg.classList.add('show');
                 successMsg.classList.remove('show');
+                offlineMsg.textContent = '⚠️ Offline mód (hálózati hiba): ' + error.message;
 
-                // Explicit close modal és renderelés offline módban is
                 setTimeout(() => {
+                    console.log('Closing modal and rendering in offline mode...');
                     closeRegistrationModal();
                     renderTimeslots();
                 }, 1000);
+            } finally {
+                // Biztonsági reset gomb
+                setTimeout(() => {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Regisztráció';
+                }, 2000);
             }
         }
 
