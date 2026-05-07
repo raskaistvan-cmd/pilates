@@ -407,8 +407,8 @@
                     <input type="text" id="participantName" name="name" required placeholder="Add meg a neved">
                 </div>
                 <div class="form-group">
-                    <label for="participantEmail">E-mail cím</label>
-                    <input type="email" id="participantEmail" name="email" placeholder="Add meg az e-mail címed (opcionális)">
+                    <label for="participantEmail">E-mail cím *</label>
+                    <input type="email" id="participantEmail" name="email" required placeholder="Add meg az e-mail címed">
                 </div>
                 <div class="success-message" id="successMessage">
                     ✓ Sikeres regisztráció! Az oldal azonnal frissül...
@@ -448,10 +448,11 @@
     </div>
 
     <script>
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwVqzBzEgbVTWmIhUEQ4kTN1Hv2dgpq8Pt1YQuQJM-Uh0jclfSUMmXpyfD8OFMDo2xT/exec';
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw-OaldlzL6ma5uL6lvBsiu9T9SE7tU0DhFZe-K891bwEHkyd2pYpCGUSvO56qw9dAp/exec';
 
         let registrations = {};
         let currentSlotId = null;
+        let adminLoggedIn = false;  // Admin jelszó védelme
 
         // Initialize
         document.addEventListener('DOMContentLoaded', async function() {
@@ -523,7 +524,7 @@
                         <div class="participant-item">
                             <div style="flex: 1;">
                                 <div class="participant-name">${p.name}</div>
-                                ${p.email ? `<div style="font-size: 10px; color: #666; margin-top: 2px;">${p.email}</div>` : ''}
+                                ${p.email ? `<div style="font-size: 10px; color: white; opacity: 0.85; margin-top: 2px;">${p.email}</div>` : ''}
                             </div>
                             <button type="button" class="delete-btn" onclick="deleteParticipant('${slotKey}', ${idx}, event)">×</button>
                         </div>
@@ -566,6 +567,7 @@
         }
 
         function closeAdminModal() {
+            adminLoggedIn = false;  // Kijelentkezés
             document.getElementById('adminModal').classList.remove('active');
             document.getElementById('adminPassword').value = '';
             document.getElementById('adminPanel').style.display = 'none';
@@ -638,6 +640,12 @@
 
         function deleteParticipant(slotId, index, event) {
             event.stopPropagation();
+
+            if (!adminLoggedIn) {
+                alert('🔒 Admin jelszó szükséges a törléshez!');
+                return;
+            }
+
             if (confirm('Biztosan kitörlöd ezt a regisztrációt?')) {
                 fetch(`${APPS_SCRIPT_URL}?action=remove&slotId=${slotId}&index=${index}`)
                     .then(r => r.json())
@@ -658,6 +666,7 @@
             event.preventDefault();
             const password = document.getElementById('adminPassword').value.trim();
             if (password === 'admin123') {
+                adminLoggedIn = true;  // Bejelentkezés flag
                 document.getElementById('adminPanel').style.display = 'block';
                 document.getElementById('adminPassword').value = '';
             } else {
